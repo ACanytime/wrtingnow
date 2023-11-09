@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://127.0.0.1:3306/zhike
+    username: root
+    password: wyy0717.
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    timeout: 30000
+    password:
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+  jackson:
+    default-property-inclusion: non_null
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  web:
+    resources:
+      static-locations: file:C:\\ck-file
+  servlet:
+    multipart:
+      enabled: true
+      max-request-size: 1MB
+      max-file-size: 1MB
+server:
+  port: 18081
+  servlet:
+    context-path: /zhike-notes
+mybatis-flex:
+  mapper-locations: mapper/**/*Mapper.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  type-aliases-package: com.zhike.note.pojo
