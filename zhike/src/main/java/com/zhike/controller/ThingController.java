@@ -83,7 +83,6 @@ public class ThingController {
 
 
     }
-
     /**
      *编辑小记
      * url: http://127.0.0.1:18081/zhike-notes/thing/edit
@@ -110,6 +109,7 @@ public class ThingController {
 
 
     }
+
     /**
      * 新增小记
      * 请求方式：POST

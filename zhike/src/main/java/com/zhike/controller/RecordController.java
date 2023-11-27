@@ -35,7 +35,7 @@ public class RecordController {
      * @return 响应数据
      */
     @GetMapping("/list")
-    public ResponseData getUserNoteList(@RequestHeader String userToken){
+    public ResponseData getUserNoteList(String search,@RequestHeader String userToken){
         //验证userToken是否为空
         if(Validator.isEmpty(userToken)) return new ResponseData(false,"登录状态有误", EventCode.PARAM_USER_TOKEN_WRONG);
         //从redis中获取登录用户的信息
@@ -53,7 +53,7 @@ public class RecordController {
         User user = JSONUtil.toBean(userTokenRedisValue, User.class);
         try {
             //调用用户的小记列表的业务
-            List<NoteThingLog> recordList = recordService.getRecordList(user.getId());
+            List<NoteThingLog> recordList = recordService.getRecordList(search,user.getId());
             return new ResponseData(true,"获取成功",EventCode.SELECT_SUCCESS,recordList);
         } catch (ServiceException e) {
             e.printStackTrace();

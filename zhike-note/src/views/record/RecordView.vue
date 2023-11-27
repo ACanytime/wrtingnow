@@ -1,27 +1,50 @@
 <template>
-    <n-table :single-line="false" size="small">
-        <thead>
-            <tr>
-                <th>最近操作事件</th>
-                <th>最近操作时间</th>
-                <th>操作事件码</th>
-                <th>用户编号</th>
-                <th>笔记编号</th>
-                <th>小记编号</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(item, index) in recordList" :key="index">
-                <td>{{ item.desc }}</td>
-                <td>{{ item.time }}</td>
-                <td>{{ item.event }}</td>
-                <td>{{ item.userId }}</td>
-                <td>{{ item.noteId }}</td>
-                <td>{{ item.thingId }}</td>
-            </tr>
-        </tbody>
-    </n-table>
+    <div>
+        <!-- 搜索输入框 -->
+        <div class="search-container">
+            <n-input-group>
+                <n-input v-model:value="search" placeholder="搜索"></n-input>
+                <n-button @click="getRecordList()">搜索</n-button>
+            </n-input-group>
+        </div>
+
+        <n-table :single-line="false" size="small">
+            <thead>
+                <tr>
+                    <th>最近操作事件</th>
+                    <th>最近操作时间</th>
+                    <th>操作事件码</th>
+                    <th>用户编号</th>
+                    <th>笔记编号</th>
+                    <th>小记编号</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in recordList" :key="index">
+                    <td>{{ item.desc }}</td>
+                    <td>{{ item.time }}</td>
+                    <td>{{ item.event }}</td>
+                    <td>{{ item.userId }}</td>
+                    <td>{{ item.noteId }}</td>
+                    <td>{{ item.thingId }}</td>
+                </tr>
+            </tbody>
+        </n-table>
+    </div>
 </template>
+  
+<style>
+/* 设置搜索框在上方 */
+.search-container {
+    margin-bottom: 10px;
+}
+
+/* 设置表格宽度为 100% */
+.n-table {
+    width: 280%;
+}
+</style>
+  
 
 <script setup>
 import { ref } from "vue"
@@ -32,6 +55,8 @@ import { noteBaseRequest } from "@/request/note_request"
 const message = useMessage()
 //加载条对象
 const loadingBar = useLoadingBar()
+//搜索对象
+const search = ref(null)
 //最近操作对象
 const recordList = ref([])
 const getRecordList = async () => {
@@ -43,7 +68,9 @@ const getRecordList = async () => {
     const { data: responseData } = await noteBaseRequest.get(
         "/record/list",
         {
-
+            params: {
+                search: search.value,
+            },
             headers: { userToken }
         }
     ).catch(() => {
@@ -72,11 +99,3 @@ const getRecordList = async () => {
 getRecordList()
 </script>
 
-<style>
-/* 设置表格宽度为 80% */
-.n-table {
-    width: 100%;
-    height: 100px;
-    /* 居中显示 */
-}
-</style>

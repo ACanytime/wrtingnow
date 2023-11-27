@@ -6,5 +6,5 @@ import com.zhike.pojo.NoteThingLog;
 import java.util.List;
 
 public interface IRecordService {
-    List<NoteThingLog> getRecordList(int userId) throws ServiceException;
+    List<NoteThingLog> getRecordList(String search,int userId) throws ServiceException;
 }
