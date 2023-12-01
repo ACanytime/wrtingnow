@@ -1,6 +1,6 @@
 <template>
     <n-space align="center" justify="space-between" style="height: 100%;">
-        <n-text>知科笔记</n-text>
+        <n-text>cloudy云笔记</n-text>
         <n-space align="center" :wrap-item="false">
             <!-- 头像 -->
             <!-- 点击头像弹出信息 -->
@@ -13,7 +13,6 @@
 
                 </template>
                 <!-- 具体信息 -->
-                <!-- <span>或许不想知道你的花园长得咋样</span> -->
                 <!-- thing东西布局 -->
                 <n-thing :title="nickName">
                     <!-- 头像 -->
@@ -73,6 +72,9 @@ import { noteBaseRequest } from "@/request/note_request";
 import { useMessage, useLoadingBar } from 'naive-ui'
 import { ref } from 'vue'
 import { loginInvalid, getUserToken } from "@/utils/userLoginUtil"
+import { useRouter } from 'vue-router';
+const router = useRouter()//路由对象
+
 //消息对象
 const message = useMessage()
 //加载条对象
@@ -117,6 +119,9 @@ const userMenu = [
 ]
 //用户菜单选项选中的回调
 const clickUserMenu = (key) => {
+    if (key === 'user-center') {
+        router.push("/"); // 将路由导航到首页页面
+    }
 
     if (key === 'sign-out') {
         userMenuShow.value = false
@@ -124,6 +129,7 @@ const clickUserMenu = (key) => {
         signOutLogin()
     }
 }
+
 //退出登录
 const signOutLogin = async () => {
     //判断用户是否已登录(客户端检查本地存储userToken的值)

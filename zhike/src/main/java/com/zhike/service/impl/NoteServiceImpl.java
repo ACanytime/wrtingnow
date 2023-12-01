@@ -28,6 +28,24 @@ public class NoteServiceImpl implements INoteService {
     private INoteThingLogService noteThingLogService;//笔记小记日志接口
 
     @Override
+    public List<Note> recycle(int userId) throws ServiceException {
+        QueryWrapper wrapper = QueryWrapper.create()
+                .select(NOTE.UPDATE_TIME,NOTE.TITLE,NOTE.CONTENT,NOTE.TYPE,NOTE.ID)
+                .where(NOTE.STATUS.eq(0))
+                .and(NOTE.USER_ID.eq(userId));
+        List<Note> note=null;
+        try {
+           return  noteDao.selectListByQuery(wrapper);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new ServiceException("查询笔记服务器异常",EventCode.SELECT_EXCEPTION);
+        }
+
+
+    }
+
+
+    @Override
     public Date saveEditingNote(int noteId, int userId, String title, String body, String content) throws ServiceException {
         QueryWrapper wrapper=QueryWrapper.create()
                 .where(NOTE.ID.eq(noteId))
@@ -86,6 +104,7 @@ public class NoteServiceImpl implements INoteService {
         if(note==null){
             throw  new ServiceException("笔记不存在，请刷新后再试",EventCode.SELECT_NONE);
         }
+
         //将查询到的笔记返回出去
         return note;
     }
@@ -145,6 +164,56 @@ public class NoteServiceImpl implements INoteService {
         QueryWrapper wrapper = QueryWrapper.create().where(NOTE.ID.eq(noteId))
                 .and(NOTE.USER_ID.eq(userId))
                 .and(NOTE.STATUS.eq(beforeStatus));
+        //操作的时间
+        Date localTime=new Date();
+        //要修改的哪些字段:status
+        Note note=Note.builder().status(afterStatus).updateTime(localTime).build();
+
+        int count = 0;
+        try {
+            //调用修改语句（数据库接口）
+            count = noteDao.updateByQuery(note, wrapper);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServiceException(desc+"失败",EventCode.UPDATE_EXCEPITION);
+        }
+        if(count!=1){
+            throw new ServiceRollBackException(desc+"失败",EventCode.UPDATE_ERROR);
+        }
+        //添加小记删除日志(删除)
+        NoteThingLog log= NoteThingLog.builder()
+                .time(localTime)
+                .event(event)
+                .desc(desc)
+                .noteId(noteId)
+                .userId(userId)
+                .build();
+        //新增笔记小记日志记录
+        noteThingLogService.addOneLog(log,true);
+
+    }
+
+    @Override
+    public void deleteNoterecycle(boolean complete, int noteId, int userId, boolean isRecycleBin) throws ServiceException {
+        //默认为正常删除操作，并不是彻底删除，也不是回收站中的删除
+        String desc="删除笔记";
+        String event=EventCode.NOTE_DELETE_SUCCESS;
+        int beforeStatus =1;//删除之前的状态
+        int afterStatus=0;//删除之后的状态
+        if(complete){
+            event=EventCode.NOTE_COMPLETE_DELETE_SUCCESS;
+            desc="彻底删除笔记";
+            afterStatus=-1;
+            if(isRecycleBin) beforeStatus=0;//在回收站中的小记状态都是已删除的
+        }
+
+
+
+        //使得status变为0或者-1
+        //封装修改条件
+        QueryWrapper wrapper = QueryWrapper.create().where(NOTE.ID.eq(noteId))
+                .and(NOTE.USER_ID.eq(userId))
+                .and(NOTE.STATUS.eq(0));
         //操作的时间
         Date localTime=new Date();
         //要修改的哪些字段:status

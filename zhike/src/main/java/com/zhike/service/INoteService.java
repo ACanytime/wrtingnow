@@ -11,6 +11,13 @@ import java.util.List;
 //关于笔记的业务接口
 public interface INoteService {
     /**
+     * 获取在回收站种的笔记信息
+     * @param userId 用户编号
+     * @return 响应数据
+     * @throws ServiceException 业务异常
+     */
+    List<Note> recycle(int userId) throws ServiceException;
+    /**
      * 保存正在编辑的笔记
      * @param noteId 笔记编号
      * @param userId 用户编号
@@ -54,6 +61,15 @@ public interface INoteService {
      * @throws ServiceException 业务异常
      */
     void deleteNoteById(boolean complete,int noteId,int userId,boolean isRecycleBin)throws ServiceException;
+    /**
+     *删除笔记
+     * @param complete 是否彻底删除笔记
+     * @param noteId  笔记编号
+     * @param userId 用户编号
+     * @param isRecycleBin 是否是回收站中的操作
+     * @throws ServiceException 业务异常
+     */
+    void deleteNoterecycle(boolean complete,int noteId,int userId,boolean isRecycleBin)throws ServiceException;
     /**
      * 获取用户正常的笔记
      * @param userId 用户id

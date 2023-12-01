@@ -65,7 +65,9 @@ onMounted(() => {
       <n-notification-provider>
         <n-dialog-provider>
           <n-message-provider>
-            <RootView></RootView>
+            <RootView>
+            </RootView>
+
           </n-message-provider>
 
         </n-dialog-provider>
@@ -76,4 +78,7 @@ onMounted(() => {
 
   </n-config-provider>
 </template>
+
+
+
 

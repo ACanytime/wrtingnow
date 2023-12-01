@@ -4,20 +4,27 @@
         <!--应用头-->
         <n-layout-header bordered style="height: 64px; padding:0 20px">
             <MainTopToolbar></MainTopToolbar>
+
         </n-layout-header>
         <!-- 左侧应用栏 -->
         <n-layout position="absolute" style="top: 64px;" has-sider>
             <n-layout-sider bordered width="64px" text-align:center content-style="padding: 24px;">
-                <MainLeftToolbar></MainLeftToolbar>
+                <MainLeftToolbar>
+
+                </MainLeftToolbar>
             </n-layout-sider>
 
             <!-- 主页面 -->
-            <router-view />
+            <router-view>
+            </router-view>
+
         </n-layout>
     </n-layout>
+
     <!-- 登录模态框 -->
     <LoginModal></LoginModal>
 </template>
+
 
 <script setup>
 import MainTopToolbar from '@/components/toolbar/MainTopToolbar.vue'
