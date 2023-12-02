@@ -2,32 +2,34 @@
     <div class="page">
         <div class="header">
             <n-tag type="success">
-                笔记回收站
+                小记回收站
             </n-tag>
         </div>
+
         <div class="content">
             <space>
-                <div class="note-list">
+                <div class="thing-list">
                     <TransitionGroup @before-enter="beforeEnter" @enter="enterEvent" @before-leave="beforeLeave"
                         @leave="LeaveEvent" move-class="move-transition">
-                        <div class="note" v-for="(note, index) in notes" :key="index">
-                            <n-card>
-                                <div class="note-title">
-                                    {{ note.id }}
-                                    {{ note.title }}</div>
+                        <div class="thing" v-for="(thing, index) in things" :key="index">
+                            <n-space>
+                                <div class="thing-title">
+                                    {{ thing.id }}
+                                    {{ thing.title }}
+                                </div>
                                 <n-ellipsis :tooltip="false" line-clamp="2">
-                                    <div class="note-title">{{ htmlToText(note.content) }}</div>
+                                    <div class="thing-title">{{ htmlToText(thing.tags) }}</div>
                                 </n-ellipsis>
 
-                                <div class="note-date">{{ note.time }}</div>
-                                <div class="note-actions">
+                                <div class="thing-date">{{ thing.time }}</div>
+                                <div class="thing-actions">
                                     <n-button>恢复</n-button>
-                                    <n-button @click="setContextMenuId(note.id), contextMenu.show = true">彻底删除</n-button>
-                                    <DeleteRemindDialog :delete-btn="false" :title="note.title" :show="contextMenu.show"
-                                        @delete="toDeleteThing" @cancel="contextMenu.show = false">
+                                    <n-button @click="setContextMenuId(thing.id), contextMenu.show = true">彻底删除</n-button>
+                                    <DeleteRemindDialog :delete-btn="false" :title="thing.title" :show="contextMenu.show"
+                                        @delete="toDeleteThing(true)" @cancel="contextMenu.show = false">
                                     </DeleteRemindDialog>
                                 </div>
-                            </n-card>
+                            </n-space>
                         </div>
                     </TransitionGroup>
 
@@ -48,7 +50,7 @@ import { htmlToText } from 'html-to-text'
 import DeleteRemindDialog from '../../components/remind/DeleteRemindDialog.vue'
 import gsap from 'gsap'
 
-const notes = ref([])
+const things = ref([])
 //消息对象
 const message = useMessage()
 //加载条对象
@@ -120,7 +122,7 @@ const LeaveEvent = (el, done) => {
         })
     }
 }
-const getNoteThing = async (ed, ha) => {
+const getRecycleThing = async (ed, ha) => {
     enterDelay = ed//显示是否需要延迟动画
     hiddenAnimation = ha //隐藏是否需要动画
     //判断用户的登录状态
@@ -129,7 +131,7 @@ const getNoteThing = async (ed, ha) => {
     loadingBar.start()//加载条开始
     //发送获取笔记列表请求
     const { data: responseData } = await noteBaseRequest.get(
-        "/note/recycle",
+        "/thing/recycle",
         {
             headers: { userToken }
         }
@@ -144,8 +146,8 @@ const getNoteThing = async (ed, ha) => {
     if (responseData.success) {
         //封装笔记列表
         loadingBar.finish()//加载条结束
-        notes.value = responseData.data
-        console.log(notes)
+        things.value = responseData.data
+        console.log(things)
     }
     else {
         loadingBar.error()//加载条异常结束
@@ -155,7 +157,7 @@ const getNoteThing = async (ed, ha) => {
         }
     }
 }
-getNoteThing(true, true)
+getRecycleThing(true, true)
 const toDeleteThing = async (complete) => {
     displaydelete.value = false//关闭提醒框
     //判断用户的登录状态
@@ -164,10 +166,10 @@ const toDeleteThing = async (complete) => {
 
     //发送删除小记请求
     const { data: responseData } = await noteBaseRequest.delete(
-        "/note/deleterecycle",
+        "/thing/deleterecycle",
         {
             params: {
-                complete, noteId: contextMenu.value.id,
+                complete, thingId: contextMenu.value.id,
                 isRecycleBin: false
             },
             headers: { userToken }
@@ -184,7 +186,7 @@ const toDeleteThing = async (complete) => {
         loadingBar.finish()//加载条结束
         message.success(responseData.message)//显示发送请求成功的通知
         contextMenu.value.show = false
-        getNoteThing(true, true)//重新获取小记列表
+        getRecycleThing(true, true)//重新获取小记列表
     }
     else {
         loadingBar.error()//加载条异常结束
@@ -196,34 +198,56 @@ const toDeleteThing = async (complete) => {
 }
 </script>
 <style>
-.note-list {
+.thing-list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    gap: 20px;
+    /* 添加间距 */
 }
 
-.note {
+.thing {
     width: calc(33% - 10px);
-    margin-bottom: 20px;
-    padding: 10px;
+    /* 调整宽度并考虑间距 */
+    padding: 20px;
+    /* 调整内边距 */
     border: 5px solid #ddd;
     box-sizing: border-box;
 }
 
-.note-title {
+.thing-title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 10px;
+    white-space: nowrap;
+    /* 不换行 */
+    overflow: hidden;
+    /* 溢出隐藏 */
+    text-overflow: ellipsis;
+    /* 超出部分显示省略号 */
 }
 
-.note-date {
+.thing-date {
     color: #999;
     margin-bottom: 10px;
 }
 
-.note-actions button {
+.thing-actions button {
     background-color: gray;
     margin-right: 10px;
+    color: white;
+    /* 设置文字颜色 */
+    border: none;
+    /* 去除边框 */
+    padding: 8px 16px;
+    /* 调整内边距 */
+    cursor: pointer;
+    /* 鼠标指针样式 */
+}
+
+.thing-actions button:last-child {
+    margin-right: 0;
+    /* 最后一个按钮去除右边距 */
 }
 </style>
+
   

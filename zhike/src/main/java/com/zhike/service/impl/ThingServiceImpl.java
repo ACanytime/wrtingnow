@@ -5,6 +5,7 @@ import com.zhike.dao.INoteThingLogDao;
 import com.zhike.dao.IThingDao;
 import com.zhike.exception.ServiceException;
 import com.zhike.exception.ServiceRollBackException;
+import com.zhike.pojo.Note;
 import com.zhike.pojo.NoteThingLog;
 import com.zhike.pojo.Thing;
 import com.zhike.service.INoteThingLogService;
@@ -30,6 +31,21 @@ public class ThingServiceImpl implements IThingService {
     private IThingDao thingDao;//小记的数据库接口
     @Autowired
     private INoteThingLogService noteThingLogService;//笔记小记日志的业务接口
+
+    @Override
+    public List<Thing> recycle(int userId) throws ServiceException {
+        QueryWrapper wrapper=QueryWrapper.create()
+                .select(THING.ID,THING.TITLE,THING.CONTENT,THING.TIME,THING.TAGS)
+                .where(THING.USER_ID.eq(userId))
+                .and(THING.STATUS.eq(0));
+        List<Thing> things=null;
+        try {
+            return  thingDao.selectListByQuery(wrapper);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new ServiceException("查询小记服务器异常",EventCode.SELECT_EXCEPTION);
+        }
+    }
 
     @Override
     public void updateThing(Thing thing) throws ServiceException {
@@ -173,6 +189,55 @@ public class ThingServiceImpl implements IThingService {
         //新增笔记小记日志记录
         noteThingLogService.addOneLog(log,true);
 
+    }
+
+    @Override
+    public void deleteThingRecycle(boolean complete, int thingId, int userId, boolean isRecycleBin) throws ServiceException {
+        //默认为正常删除操作，并不是彻底删除，也不是回收站中的删除
+        String desc="删除小记";
+        String event=EventCode.THING_DELETE_SUCCESS;
+        int beforeStatus =1;//删除之前的状态
+        int afterStatus=0;//删除之后的状态
+        if(complete){
+            event=EventCode.THING_COMPLETE_DELETE_SUCCESS;
+            desc="彻底删除小记";
+            afterStatus=-1;
+            if(isRecycleBin) beforeStatus=0;//在回收站中的小记状态都是已删除的
+        }
+
+
+
+        //使得status变为0或者-1
+        //封装修改条件
+        QueryWrapper wrapper = QueryWrapper.create().where(THING.ID.eq(thingId))
+                .and(THING.USER_ID.eq(userId))
+                .and(THING.STATUS.eq(0));
+        //操作的时间
+        Date localTime=new Date();
+        //要修改的哪些字段:status
+        Thing thing=Thing.builder().status(afterStatus).updateTime(localTime).build();
+
+        int count = 0;
+        try {
+            //调用修改语句（数据库接口）
+            count = thingDao.updateByQuery(thing, wrapper);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServiceException(desc+"失败",EventCode.UPDATE_EXCEPITION);
+        }
+        if(count!=1){
+            throw new ServiceRollBackException(desc+"失败",EventCode.UPDATE_ERROR);
+        }
+        //添加小记删除日志(删除)
+        NoteThingLog log= NoteThingLog.builder()
+                .time(localTime)
+                .event(event)
+                .desc(desc)
+                .thingId(thingId)
+                .userId(userId)
+                .build();
+        //新增笔记小记日志记录
+        noteThingLogService.addOneLog(log,true);
     }
 
     @Override

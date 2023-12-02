@@ -3,6 +3,7 @@ import ThingIndexView from '@/views/thing/IndexView.vue';
 import RecordView from '@/views/record/RecordView.vue';
 import RecycleView from '@/views/recycle/RecycleView.vue'
 import Home from '@/views/home/Home.vue';
+import RecycleThingView from "@/views/recycle/RecycleThingView.vue"
 const routes = [
 
   //首页
@@ -14,6 +15,10 @@ const routes = [
   {
     path: '/recycle',
     component: RecycleView
+  },
+  {
+    path: '/Thingrecycle',
+    component: RecycleThingView
   },
   //小记界面的路由链接
   {

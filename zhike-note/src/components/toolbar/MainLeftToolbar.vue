@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { AddBoxRound, DeleteOutlineRound, StickyNote2Outlined, EventNoteRound, SearchRound, AccessTimeRound, StarBorderRound, ShoppingBagOutlined } from '@vicons/material'
+import { AddBoxRound, DeleteOutlineRound, StickyNote2Outlined, EventNoteRound, SearchRound, AccessTimeRound, StarBorderRound, DeleteForeverOutlined } from '@vicons/material'
 import { NIcon } from 'naive-ui';
 import { h, watch, ref, inject } from 'vue'
 import { useRouter } from 'vue-router';
@@ -83,7 +83,8 @@ const addBoxOptions = [{
 
         }
     }
-}
+},
+
 ]
 
 //主要的菜单
@@ -113,13 +114,13 @@ const mainMenus = [
         to: ''
     },
     {
-        label: "商城",
-        icon: ShoppingBagOutlined,
+        label: "小记回收站",
+        icon: DeleteForeverOutlined,
         icon_size: 24,
-        to: ''
+        to: '/Thingrecycle'
     },
     {
-        label: "回收站",
+        label: "笔记回收站",
         icon: DeleteOutlineRound,
         icon_size: 24,
         to: '/recycle'

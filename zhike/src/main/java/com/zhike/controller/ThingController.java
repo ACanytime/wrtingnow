@@ -7,6 +7,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
 import com.zhike.exception.ServiceException;
+import com.zhike.pojo.Note;
 import com.zhike.pojo.Thing;
 import com.zhike.pojo.User;
 import com.zhike.service.IThingService;
@@ -31,6 +32,34 @@ public class ThingController {
     private IThingService thingService;//小记的业务
     @Autowired
     private StringRedisTemplate redisTemplate;//redis对象
+    @GetMapping("/recycle")
+    public ResponseData recycleThing(@RequestHeader String userToken){
+        //验证userToken是否为空
+        if(Validator.isEmpty(userToken)) return new ResponseData(false,"登录状态有误", EventCode.PARAM_USER_TOKEN_WRONG);
+        //从redis中获取登录用户的信息
+        String userTokenRedisValue= null;
+        try {
+            userTokenRedisValue = redisTemplate.opsForValue().get(userToken);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseData(false,"小记服务错误",EventCode.REDIS_SERVE_ERROR);
+        }
+        //判断是否登录失效
+        if(Validator.isEmpty(userTokenRedisValue))
+            return new ResponseData(false,"登录失效",EventCode.LOGIN_INVALID);
+        //将userTokenRedisValue通过JSON转化为登录的用户的对象
+        User user = JSONUtil.toBean(userTokenRedisValue, User.class);
+        try {
+            //调用用户的小记列表的业务
+            List<Thing> things = thingService.recycle(user.getId());
+            return new ResponseData(true,"获取成功",EventCode.SELECT_SUCCESS,things);
+        } catch (ServiceException e) {
+            e.printStackTrace();
+            return new ResponseData(false,e.getMessage(),e.getCode());
+        }
+
+
+    }
 
     /**
      * 修改小记
@@ -183,6 +212,28 @@ public class ThingController {
             if(Validator.isEmpty(thingId)) return  new ResponseData(false,"小记编号参数有误",EventCode.PARAM_THING_ID_WRONG);
             //调用用户的小记列表的业务
             thingService.deleteThingById(complete,thingId, user.getId(),isRecycleBin);
+            return new ResponseData(true,complete?"彻底删除成功" :"删除成功",EventCode.UPDATE_SUCCESS);
+        } catch (ServiceException e) {
+            e.printStackTrace();
+            return new ResponseData(false,e.getMessage(),e.getCode());
+        }
+
+
+    }
+    @DeleteMapping("/deleterecycle")
+    public ResponseData deleteNoterecycle(boolean complete,int thingId,boolean isRecycleBin,@RequestHeader String userToken){
+
+        try {
+            //判断登录函数
+            User user = TokenValidateUtil.validateUserToken(userToken, redisTemplate);
+            //验证回收站参数
+            if(Validator.isEmpty(isRecycleBin)) return  new ResponseData(false,"删除参数有误",EventCode.PARAM_DELETE_RECYCLE_BIN_WRONG);
+            //验证彻底删除参数
+            if(Validator.isEmpty(complete)) return  new ResponseData(false,"删除参数有误",EventCode.PARAM_DELETE_COMPLETE_WRONG);
+            //验证笔记编号参数
+            if(Validator.isEmpty(thingId)) return  new ResponseData(false,"小记编号参数有误",EventCode.PARAM_THING_ID_WRONG);
+            //调用用户的笔记列表的业务
+            thingService.deleteThingRecycle(complete,thingId, user.getId(),isRecycleBin);
             return new ResponseData(true,complete?"彻底删除成功" :"删除成功",EventCode.UPDATE_SUCCESS);
         } catch (ServiceException e) {
             e.printStackTrace();
